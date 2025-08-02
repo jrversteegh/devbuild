@@ -5,6 +5,8 @@ MPFR_VERSION=4.2.2
 MPC_VERSION=1.3.1
 GCC_VERSION=15.1.0
 
+unset LD_LIBRARY_PATH
+unset LIBRARY_PATH
 
 if [ -z $ENV_DIR ]; then
   ENV_DIR=~/Environments/dev
@@ -12,6 +14,11 @@ fi
 
 if [ -d "$ENV_DIR" ]; then
   echo "Environment $ENV_DIR already exists. Remove if you want to create a new one"
+  exit 1
+fi
+
+if [ -d .build ]; then
+  echo "Build directory .build already exists. Remove if you want to build"
   exit 1
 fi
 

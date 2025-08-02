@@ -22,14 +22,13 @@ function download()
   name=$1
   file=$2
   url=$3
-  unp1=`basename $file .tar.gz`
-  unp2=`basename $file .tar.bz2`
-  unp3=`basename $file .tar.xz`
-  unp4=`basename $file .tgz`
-  # patch level 1 (qt)
-  unpp=`basename $file "-1.tar.gz"`
-  unps=`basename $file "-src.tar.gz"`
+  if [ -z $4 ]; then
+    unpacked=`basename $file .tar.gz`
+  else
+    unpacked=$4
+  fi
   if [ -d $name ]; then
+    echo "$name already exists"
     return 0
   fi
   mkdir -p .downloads
@@ -37,6 +36,7 @@ function download()
     pushd .downloads && wget --no-check-certificate $url && popd || fail "Failed to get $name"
   fi
   tar xf .downloads/$file && \
+    mv $unpacked $name && \
     if [ ! -d $name ]; then 
       fail "Failed to unpack $name"
     fi
@@ -58,13 +58,14 @@ function gnu_download()
   version=$2
   ext=$3
   canonical=$4
-  file=$name-$version.$ext
+  unpacked=$name-$version
+  file=$unpacked.$ext
   if [ "X$canonical" = "X" ]; then
     url=$GNU_MIRROR/$name/$file
   else
     url=$GNU_MIRROR/$name/$canonical/$file
   fi
-  download $name $file $url
+  download $name $file $url $unpacked
 } 
 
 
