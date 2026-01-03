@@ -32,6 +32,8 @@ gnu_download gcc $GCC_VERSION tar.gz gcc-$GCC_VERSION
 python -m venv "$ENV_DIR" || fail "Failed to setup environment"
 echo "export PKG_CONFIG_PATH=\$VIRTUAL_ENV/lib/pkgconfig:\$PKG_CONFIG_PATH" >> "$ENV_DIR/bin/activate" 
 echo "export LD_LIBRARY_PATH=\$VIRTUAL_ENV/lib:\$LD_LIBRARY_PATH" >> "$ENV_DIR/bin/activate" 
+echo "export RUSTUP_HOME=\$VIRTUAL_ENV/rustup"
+echo "export CARGO_HOME=\$VIRTUAL_ENV"
 . "$ENV_DIR/bin/activate" || fail "Failed to activate environment"
 
 pip install cmake
@@ -39,5 +41,7 @@ mkdir -p .build
 cd .build
 cmake -DCMAKE_INSTALL_PREFIX="$ENV_DIR" ..
 make -j 8
+
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
 
 deactivate
