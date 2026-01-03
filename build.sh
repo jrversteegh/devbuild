@@ -39,6 +39,7 @@ if ! `which pyenv`; then
   curl https://pyenv.run | bash
 fi
 
+pyenv update
 pyenv install -s $PY_VERSION
 pyenv local $PY_VERSION
 
