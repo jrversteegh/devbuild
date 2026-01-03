@@ -1,5 +1,6 @@
 #!/bin/bash
 
+PY_VERSION=3.14
 GMP_VERSION=6.3.0
 MPFR_VERSION=4.2.2
 MPC_VERSION=1.3.1
@@ -10,6 +11,10 @@ unset LIBRARY_PATH
 
 if [ -z $ENV_DIR ]; then
   ENV_DIR=~/Environments/dev
+fi
+
+if [ ! -z "$1" ]; then
+  ENV_DIR="$1"
 fi
 
 if [ -d "$ENV_DIR" ]; then
@@ -28,6 +33,14 @@ gnu_download gmp $GMP_VERSION tar.xz
 gnu_download mpfr $MPFR_VERSION tar.xz 
 gnu_download mpc $MPC_VERSION tar.gz 
 gnu_download gcc $GCC_VERSION tar.gz gcc-$GCC_VERSION
+
+if ! `which pyenv`; then
+  sudo apt install -y liblzma-dev libbz2-dev tk-dev libssl-dev libffi-dev libsqlite3-dev libreadline-dev libncurses-dev
+  curl https://pyenv.run | bash
+fi
+
+pyenv install -s $PY_VERSION
+pyenv local $PY_VERSION
 
 python -m venv "$ENV_DIR" || fail "Failed to setup environment"
 echo "export PKG_CONFIG_PATH=\$VIRTUAL_ENV/lib/pkgconfig:\$PKG_CONFIG_PATH" >> "$ENV_DIR/bin/activate" 
