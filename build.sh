@@ -29,33 +29,53 @@ fi
 
 . ./download.sh
 
-gnu_download gmp $GMP_VERSION tar.xz
-gnu_download mpfr $MPFR_VERSION tar.xz 
-gnu_download mpc $MPC_VERSION tar.gz 
-gnu_download gcc $GCC_VERSION tar.gz gcc-$GCC_VERSION
+run() {
+  echo -n "$1... "
+  shift
+  log=$1
+  if [ -z $log ]; then
+    echo "Require log"
+    exit 1
+  fi
+  shift
+  if [ -z $1 ]; then
+    echo "Require argument"
+    exit 2
+  fi
+  $@ >> $log.log 2>$log.error || fail "Failed to run $1"
+  echo " done."
+}
 
-if ! `which pyenv`; then
-  sudo apt install -y liblzma-dev libbz2-dev tk-dev libssl-dev libffi-dev libsqlite3-dev libreadline-dev libncurses-dev
-  curl https://pyenv.run | bash
+run "Downloading GMP" downloads gnu_download gmp $GMP_VERSION tar.xz
+run "Downloading MPFR" downloads gnu_download mpfr $MPFR_VERSION tar.xz 
+run "Downloading MPC" downloads gnu_download mpc $MPC_VERSION tar.gz 
+run "Downloading GCC" downloads gnu_download gcc $GCC_VERSION tar.gz gcc-$GCC_VERSION
+
+if ! which pyenv >/dev/null; then
+  run "Installing pyenv dependencies" pyenv sudo apt install -y liblzma-dev libbz2-dev tk-dev libssl-dev libffi-dev libsqlite3-dev libreadline-dev libncurses-dev
+  run "Installing pyenv" pyenv curl https://pyenv.run | bash
 fi
 
-pyenv update
-pyenv install -s $PY_VERSION
-pyenv local $PY_VERSION
+run "Updating pyenv" pyenv pyenv update
+run "Installing Python $PY_VERSION" python pyenv install -s $PY_VERSION
+run "Activating Python $PY_VERSION" python pyenv local $PY_VERSION
 
-python -m venv "$ENV_DIR" || fail "Failed to setup environment"
+run "Creating virtual environment" venv python -m venv "$ENV_DIR"
 echo "export PKG_CONFIG_PATH=\$VIRTUAL_ENV/lib/pkgconfig:\$PKG_CONFIG_PATH" >> "$ENV_DIR/bin/activate" 
 echo "export LD_LIBRARY_PATH=\$VIRTUAL_ENV/lib:\$LD_LIBRARY_PATH" >> "$ENV_DIR/bin/activate" 
 echo "export RUSTUP_HOME=\$VIRTUAL_ENV/rustup" >> "$ENV_DIR/bin/activate"
 echo "export CARGO_HOME=\$VIRTUAL_ENV" >> "$ENV_DIR/bin/activate"
 . "$ENV_DIR/bin/activate" || fail "Failed to activate environment"
 
-pip install cmake
+run "Installing CMake" cmake pip install cmake
 mkdir -p .build
 cd .build
-cmake -DCMAKE_INSTALL_PREFIX="$ENV_DIR" ..
-make -j 8
+run "Configuring build" cmake cmake -DCMAKE_INSTALL_PREFIX="$ENV_DIR" ..
+run "Building GCC" gcc cmake --build . --target gcc --parallel=8
 
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
+run "Installing Rust" rust curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
 
 deactivate
+
+echo "Installed development environment. Activate with:"
+echo ". $ENV_DIR/bin/activate"
