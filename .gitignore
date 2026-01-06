@@ -6,3 +6,5 @@
 /mpc
 /mpfr
 /.python-version
+/*.log
+/*.error
