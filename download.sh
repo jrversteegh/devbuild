@@ -1,5 +1,5 @@
 GNU_MIRROR=https://ftp.snt.utwente.nl/pub/software/gnu
-LLVM_MIRROR=https://github.com/llvm/llvm-project/releases/download
+LLVM_MIRROR=https://github.com/llvm/llvm-project/archive/refs/tags/
 
 function fail()
 {
@@ -46,10 +46,9 @@ function download()
 function llvm_download() 
 {
   name=$1
-  base=$2
-  package=$3
-  file=`basename $package.src.tar.xz`
-  download $name $file $LLVM_MIRROR/$base/$file
+  version=$2
+  file=llvmorg-$version.tar.gz
+  download $name $file $LLVM_MIRROR/$file llvm-project-llvmorg-$version
 } 
 
 function gnu_download() 
