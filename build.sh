@@ -6,6 +6,7 @@ MPFR_VERSION=4.2.2
 MPC_VERSION=1.3.1
 GCC_VERSION=15.2.0
 LLVM_VERSION=21.1.8
+M4_VERSION=1.4.21
 
 unset LD_LIBRARY_PATH
 unset LIBRARY_PATH
@@ -53,6 +54,8 @@ run() {
   echo " done."
 }
 
+# M4 is installed with pip if it's not available, but download it anyway
+run "Downloading M4" downloads gnu_download m4 $M4_VERSION tar.xz
 run "Downloading GMP" downloads gnu_download gmp $GMP_VERSION tar.xz
 run "Downloading MPFR" downloads gnu_download mpfr $MPFR_VERSION tar.xz
 run "Downloading MPC" downloads gnu_download mpc $MPC_VERSION tar.gz
@@ -70,6 +73,7 @@ if ! which pyenv >/dev/null; then
   fi
 fi
 
+
 run "Updating pyenv" pyenv pyenv update
 run "Installing Python $PY_VERSION" python pyenv install -s $PY_VERSION
 run "Activating Python $PY_VERSION" python pyenv local $PY_VERSION
@@ -82,7 +86,10 @@ echo "export CARGO_HOME=\$VIRTUAL_ENV" >> "$ENV_DIR/bin/activate"
 . "$ENV_DIR/bin/activate" || fail "Failed to activate environment"
 
 run "Installing CMake" cmake pip install cmake
-run "Installing Ninja" cmake pip install ninja
+run "Installing Ninja" ninja pip install ninja
+if ! which m4 >/dev/null; then
+  run "Installing M4" m4 pip install m4
+fi
 mkdir -p .build/llvm
 cd .build
 run "Configuring build" cmake cmake -DCMAKE_INSTALL_PREFIX="$ENV_DIR" ..
