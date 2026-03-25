@@ -27,7 +27,7 @@ if [ -d "$ENV_DIR" ]; then
   exit 1
 fi
 
-mkdir -p `dirname $ENVDIR`
+mkdir -p `dirname $ENV_DIR`
 
 if [ -d .build ]; then
   echo "Build directory .build already exists. Remove if you want to build"
