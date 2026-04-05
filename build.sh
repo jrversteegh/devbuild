@@ -63,14 +63,13 @@ run "Downloading GCC" downloads gnu_download gcc $GCC_VERSION tar.gz gcc-$GCC_VE
 run "Downloading LLVM" downloads llvm_download llvm $LLVM_VERSION
 
 if ! which pyenv >/dev/null; then
-  if [ -d ~/.pyenv ]; then
-    export PYENV_ROOT="$HOME/.pyenv"
-    command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
-    eval "$(pyenv init -)" || { echo "Failed to run pyenv"; exit 3; }
-  else
+  if [ ! -d ~/.pyenv ]; then
     run "Installing pyenv dependencies" pyenv sudo apt install -y liblzma-dev libbz2-dev tk-dev libssl-dev libffi-dev libsqlite3-dev libreadline-dev libncurses-dev
     run "Installing pyenv" pyenv curl https://pyenv.run | bash
   fi
+  export PYENV_ROOT="$HOME/.pyenv"
+  command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
+  eval "$(pyenv init -)" || { echo "Failed to run pyenv"; exit 3; }
 fi
 
 
