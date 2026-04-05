@@ -5,6 +5,7 @@
 /llvm
 /mpc
 /mpfr
+/m4
 /.python-version
 /*.log
 /*.error
