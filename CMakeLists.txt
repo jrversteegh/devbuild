@@ -9,6 +9,13 @@ set(PRE_FLAGS --prefix=${CMAKE_INSTALL_PREFIX})
 set(CMAKE_FLAGS -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++)
 file(WRITE "${CMAKE_CURRENT_SOURCE_DIR}/llvm/configure" "cd ${CMAKE_CURRENT_SOURCE_DIR}/llvm && cmake -S llvm -G \"Unix Makefiles\" -B ${CMAKE_BINARY_DIR}/llvm -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PROJECTS=\"clang;clang-tools-extra;lldb;lld\" -DLLVM_ENABLE_RUNTIMES=\"libcxx;libcxxabi;libunwind\" -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}\n")
 
+ExternalProject_Add(
+  binutils
+  SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/binutils
+  BUILD_IN_SOURCE 1
+  CONFIGURE_COMMAND ./configure ${PRE_FLAGS}
+)
+
 # First build gcc 
 ExternalProject_Add(
   gmp

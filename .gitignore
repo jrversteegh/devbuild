@@ -6,6 +6,7 @@
 /mpc
 /mpfr
 /m4
+/binutils
 /.python-version
 /*.log
 /*.error

@@ -7,6 +7,7 @@ MPC_VERSION=1.3.1
 GCC_VERSION=15.2.0
 LLVM_VERSION=21.1.8
 M4_VERSION=1.4.21
+BU_VERSION=with-gold-2.46
 
 unset LD_LIBRARY_PATH
 unset LIBRARY_PATH
@@ -16,14 +17,14 @@ if [ -z $ENV_DIR ]; then
 fi
 
 if [ -z $CORES ]; then
-  CORES=8
+  CORES=$(expr $(nproc) / 2)
 fi
 
 if [ ! -z "$1" ]; then
   ENV_DIR="$1"
 fi
 
-if [ -d "$ENV_DIR" ]; then
+if [ -d "$ENV_DIR" ] && [ -z "$SKIP_TARGET_CHECK" ]; then
   echo "Environment $ENV_DIR already exists. Remove if you want to create a new one"
   exit 1
 fi
@@ -55,6 +56,7 @@ run() {
 }
 
 # M4 is installed with pip if it's not available, but download it anyway
+run "Downloading Binutils" downloads gnu_download binutils $BU_VERSION tar.xz
 run "Downloading M4" downloads gnu_download m4 $M4_VERSION tar.xz
 run "Downloading GMP" downloads gnu_download gmp $GMP_VERSION tar.xz
 run "Downloading MPFR" downloads gnu_download mpfr $MPFR_VERSION tar.xz
@@ -77,12 +79,16 @@ run "Updating pyenv" pyenv pyenv update
 run "Installing Python $PY_VERSION" python pyenv install -s $PY_VERSION
 run "Activating Python $PY_VERSION" python pyenv local $PY_VERSION
 
-run "Creating virtual environment" venv python -m venv "$ENV_DIR"
-echo "export PKG_CONFIG_PATH=\$VIRTUAL_ENV/lib/pkgconfig:\$PKG_CONFIG_PATH" >> "$ENV_DIR/bin/activate" 
-echo "export LD_LIBRARY_PATH=\$VIRTUAL_ENV/lib:\$LD_LIBRARY_PATH" >> "$ENV_DIR/bin/activate" 
-echo "export RUSTUP_HOME=\$VIRTUAL_ENV/rustup" >> "$ENV_DIR/bin/activate"
-echo "export CARGO_HOME=\$VIRTUAL_ENV" >> "$ENV_DIR/bin/activate"
+if [ ! -d "$ENV_DIR" ]; then
+  run "Creating virtual environment" venv python -m venv "$ENV_DIR"
+  echo "export PKG_CONFIG_PATH=\$VIRTUAL_ENV/lib/pkgconfig:\$PKG_CONFIG_PATH" >> "$ENV_DIR/bin/activate" 
+  echo "export LD_LIBRARY_PATH=\$VIRTUAL_ENV/lib:\$LD_LIBRARY_PATH" >> "$ENV_DIR/bin/activate" 
+  echo "export RUSTUP_HOME=\$VIRTUAL_ENV/rustup" >> "$ENV_DIR/bin/activate"
+  echo "export CARGO_HOME=\$VIRTUAL_ENV" >> "$ENV_DIR/bin/activate"
+fi
+echo -n "Activating virtual environment... "
 . "$ENV_DIR/bin/activate" || fail "Failed to activate environment"
+echo "done"
 
 run "Installing CMake" cmake pip install cmake
 run "Installing Ninja" ninja pip install ninja
@@ -92,6 +98,7 @@ fi
 mkdir -p .build/llvm
 cd .build
 run "Configuring build" cmake cmake -DCMAKE_INSTALL_PREFIX="$ENV_DIR" ..
+run "Building Binutils $BU_VERSION" gcc cmake --build . --target binutils --parallel=$CORES
 run "Building GCC $GCC_VERSION" gcc cmake --build . --target gcc --parallel=$CORES
 run "Building LLVM $LLVM_VERSION" llvm cmake --build . --target llvm --parallel=$CORES
 
