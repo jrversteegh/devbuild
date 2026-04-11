@@ -74,12 +74,10 @@ if ! which pyenv >/dev/null; then
   eval "$(pyenv init -)" || { echo "Failed to run pyenv"; exit 3; }
 fi
 
-
-run "Updating pyenv" pyenv pyenv update
-run "Installing Python $PY_VERSION" python pyenv install -s $PY_VERSION
-run "Activating Python $PY_VERSION" python pyenv local $PY_VERSION
-
 if [ ! -d "$ENV_DIR" ]; then
+  run "Updating pyenv" pyenv pyenv update
+  run "Installing Python $PY_VERSION" python pyenv install -s $PY_VERSION
+  run "Activating Python $PY_VERSION" python pyenv local $PY_VERSION
   run "Creating virtual environment" venv python -m venv "$ENV_DIR"
   echo "export PKG_CONFIG_PATH=\$VIRTUAL_ENV/lib/pkgconfig:\$PKG_CONFIG_PATH" >> "$ENV_DIR/bin/activate" 
   echo "export LD_LIBRARY_PATH=\$VIRTUAL_ENV/lib:\$LD_LIBRARY_PATH" >> "$ENV_DIR/bin/activate" 
